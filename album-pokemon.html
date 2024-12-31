@@ -11,10 +11,16 @@
   />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <style>
+    /* Per non ritagliare l'immagine: width 100%, height auto. */
     .card-image img {
-      height: 300px;
-      object-fit: cover; 
+      width: 100%;
+      height: auto;
+      /* Se vuoi un'altezza massima fissa, scommenta queste due righe:
+      max-height: 300px;
+      object-fit: contain;
+      */
     }
+
     .spinner {
       text-align: center;
       margin-top: 30px;
@@ -38,7 +44,9 @@
     <div id="message" class="red-text center-align" style="margin-top:20px;"></div>
 
     <!-- Sezione TOT Pull -->
-    <h5 id="totalPull" class="center" style="margin-top: 20px;">TOTALE PULL: ...</h5>
+    <h5 id="totalPull" class="center" style="margin-top: 20px;">
+      TOTALE PULL: ...
+    </h5>
 
     <!-- Spinner di caricamento -->
     <div id="spinner" class="spinner">
@@ -67,9 +75,9 @@
   <!-- Materialize JS (CDN) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
-  <!-- Supabase JS v2 (ESM su un CDN ESM, oppure su un bundler). Facciamo un trucco per import dinamico: -->
+  <!-- Supabase JS v2 (ESM su un CDN ESM) -->
   <script type="module">
-    // 1) Leggi parametri da query string
+    // 1) Leggi parametri da query string (username)
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(param);
@@ -77,7 +85,7 @@
 
     const username = getQueryParam('username');
 
-    // 2) Se non c'è username, mostriamo errore e stop
+    // 2) Se non c'è username, avviso e stop
     if (!username) {
       document.getElementById("message").innerText =
         "Nessun username fornito! Usa ?username=Qualcosa nell'URL.";
@@ -85,15 +93,15 @@
       throw new Error("No username param in URL");
     }
 
-    // Cambiamo il titolo
+    // Cambiamo il titolo nella navbar
     document.getElementById("albumTitle").innerText = `Album di ${username}`;
 
     // 3) Import supabase
     import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-    // 4) Inizializza supabase client
-    const supabaseUrl = "https://xxfdshfphluhbpybogaz.supabase.co";     // <--- Sostituisci
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4ZmRzaGZwaGx1aGJweWJvZ2F6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2MjE1MzYsImV4cCI6MjA1MDE5NzUzNn0.8CPX0AX2uAMMzriXqPgPkpJXdGINetoFHJwPIhemHeo"; // <--- Sostituisci
+    // 4) Inizializza supabase client (usando i dati che hai indicato)
+    const supabaseUrl = "https://xxfdshfphluhbpybogaz.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4ZmRzaGZwaGx1aGJweWJvZ2F6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2MjE1MzYsImV4cCI6MjA1MDE5NzUzNn0.8CPX0AX2uAMMzriXqPgPkpJXdGINetoFHJwPIhemHeo";
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // 5) Funzione di caricamento e rendering
@@ -110,6 +118,7 @@
           console.error("Supabase Error:", error);
           document.getElementById("message").innerText =
             "Errore nella lettura dei dati da Supabase!";
+          document.getElementById("spinner").style.display = "none";
           return;
         }
 
@@ -133,7 +142,8 @@
           const card_val  = p.card_value || 0;
           const pulled_at = p.pulled_at || "---";
 
-          // Crea un col con Materialize
+          // Creiamo una colonna Materialize: col s12 m6
+          // => 1 colonna su schermi piccoli (s12), 2 colonne su media in su (m6).
           let colDiv = document.createElement("div");
           colDiv.className = "col s12 m6";
 
@@ -166,10 +176,9 @@
       }
     }
 
-    // 6) Chiama la funzione
+    // 6) Carica i dati
     loadPulls();
   </script>
 
 </body>
 </html>
-
