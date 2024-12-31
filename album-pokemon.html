@@ -26,45 +26,49 @@
       text-align: center;
     }
 
-    /* Forziamo 2 colonne (50% - 50%) su tutti i dispositivi */
+    /* 2 colonne fisse su tutti i device => 50% */
     .col.s6 {
       width: 50%;
       max-width: 50%;
       flex: 0 0 auto;
     }
 
-    /* Card di altezza fissa: 260px (regola come desideri).
+    /* Card di altezza fissa: 260px
        Usando flex, centriamo verticalmente la content sotto l'immagine. */
     .card {
       height: 260px; 
       display: flex;
       flex-direction: column; 
       align-items: center; /* orizzontalmente al centro */
+      margin-bottom: 1rem;  /* un po' di spazio tra le righe */
     }
 
-    /* L'immagine sta in alto, ma con un limite di 120px di altezza */
+    /* Sezione immagine: padding sopra e sotto
+       per evitare che l'immagine tocchi i bordi e le info */
     .card-image {
-      flex: 0 0 auto; /* non si espande */
+      flex: 0 0 auto;
       width: 100%;
       text-align: center; 
+      padding-top: 8px;
+      padding-bottom: 8px;
     }
+    /* Immagine ~15% più grande: max-height 138px */
     .card-image img {
-      max-height: 120px; 
-      width: auto; 
-      object-fit: contain; /* evita tagli */
+      max-height: 138px;
+      width: auto;
+      object-fit: contain; 
     }
 
-    /* La parte testo (card-content) si espande, 
-       e centriamo verticalmente i paragrafi. */
+    /* Testo (card-content) si espande, centrato verticalmente */
     .card-content {
-      flex: 1; 
+      flex: 1;
       display: flex; 
       flex-direction: column;
       justify-content: center; 
       align-items: center; 
       text-align: center;
-      font-size: 0.75rem; /* testo ridotto */
-      padding: 0.5rem;    /* un po' di spazio interno */
+      font-size: 0.75rem; 
+      padding: 0.5rem;
     }
 
     /* Spinner e container */
@@ -179,8 +183,7 @@
           const colDiv = document.createElement("div");
           colDiv.className = "col s6";
 
-          // Nome carta = stesso font-size, ma in grassetto
-          // Riquadro di altezza fissa (card) e testo centrato.
+          // Nome carta in grassetto, stessi font-size del resto
           colDiv.innerHTML = `
             <div class="card">
               <div class="card-image">
