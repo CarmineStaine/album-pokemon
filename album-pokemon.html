@@ -59,7 +59,7 @@
     }
 
     /* Parte testo (card-content) occupa lo spazio rimanente,
-       centrato verticalmente. */
+       centrato verticalmente, con un padding sotto per non toccare il bordo. */
     .card-content {
       flex: 1;
       display: flex; 
@@ -69,6 +69,7 @@
       text-align: center;
       font-size: 0.75rem; 
       padding: 0.5rem;
+      padding-bottom: 1rem;  /* aggiunto per distanziare dal bordo inferiore */
     }
 
     /* Spinner e contenitore */
@@ -177,7 +178,20 @@
           const card_link = p.card_link || "#";
           const card_name = p.card_name || "???";
           const card_val  = p.card_value || 0;
-          const pulled_at = p.pulled_at || "---";
+          let pulled_at   = p.pulled_at || "---";
+
+          // Proviamo a formattare la data in GG-MM-AAAA
+          if (pulled_at !== "---") {
+            const dt = new Date(pulled_at);
+            if (!isNaN(dt)) {
+              const dd = String(dt.getDate()).padStart(2, '0');
+              const mm = String(dt.getMonth() + 1).padStart(2, '0');
+              const yyyy = dt.getFullYear();
+              pulled_at = `${dd}-${mm}-${yyyy}`;
+            } else {
+              pulled_at = "---";
+            }
+          }
 
           // 2 colonne => col s6
           const colDiv = document.createElement("div");
