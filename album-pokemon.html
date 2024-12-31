@@ -9,18 +9,19 @@
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
   />
+  <!-- Impostazione responsive per schermi mobili -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <style>
-    /* Per non ritagliare l'immagine: width 100%, height auto. */
+    /* Le immagini si adattano alla larghezza del contenitore,
+       mantenendo proporzioni corrette (height auto). */
     .card-image img {
       width: 100%;
       height: auto;
-      /* Se vuoi un'altezza massima fissa, scommenta queste due righe:
+      /* Se vuoi limitare l’altezza massima, scommenta:
       max-height: 300px;
       object-fit: contain;
       */
     }
-
     .spinner {
       text-align: center;
       margin-top: 30px;
@@ -31,19 +32,19 @@
   </style>
 </head>
 <body>
-  <!-- Navbar -->
+  <!-- Navbar in alto -->
   <nav class="blue">
     <div class="nav-wrapper">
       <a href="#" class="brand-logo center" id="albumTitle">Album Pokemon</a>
     </div>
   </nav>
 
-  <!-- Container principale -->
+  <!-- Contenitore principale -->
   <div class="container">
-    <!-- Div dove mostriamo (eventualmente) messaggi di errore o avvisi -->
+    <!-- Div per eventuali messaggi/avvisi -->
     <div id="message" class="red-text center-align" style="margin-top:20px;"></div>
 
-    <!-- Sezione TOT Pull -->
+    <!-- Titolo del totale -->
     <h5 id="totalPull" class="center" style="margin-top: 20px;">
       TOTALE PULL: ...
     </h5>
@@ -66,26 +67,23 @@
       <p>Caricamento in corso...</p>
     </div>
 
-    <!-- Griglia responsive -->
+    <!-- Grid responsive con Materialize -->
     <div id="albumGrid" class="row" style="display: none;">
-      <!-- Qui inseriremo le card con JS -->
+      <!-- Le card verranno create via JS -->
     </div>
   </div>
 
   <!-- Materialize JS (CDN) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
-  <!-- Supabase JS v2 (ESM su un CDN ESM) -->
+  <!-- Supabase JS v2 (ESM) -->
   <script type="module">
-    // 1) Leggi parametri da query string (username)
+    // 1) Leggi parametro "username" dall'URL
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(param);
     }
-
     const username = getQueryParam('username');
-
-    // 2) Se non c'è username, avviso e stop
     if (!username) {
       document.getElementById("message").innerText =
         "Nessun username fornito! Usa ?username=Qualcosa nell'URL.";
@@ -96,18 +94,18 @@
     // Cambiamo il titolo nella navbar
     document.getElementById("albumTitle").innerText = `Album di ${username}`;
 
-    // 3) Import supabase
+    // 2) Import supabase (ESM)
     import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-    // 4) Inizializza supabase client (usando i dati che hai indicato)
+    // 3) Inizializza supabase client (con i TUOI parametri)
     const supabaseUrl = "https://xxfdshfphluhbpybogaz.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4ZmRzaGZwaGx1aGJweWJvZ2F6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2MjE1MzYsImV4cCI6MjA1MDE5NzUzNn0.8CPX0AX2uAMMzriXqPgPkpJXdGINetoFHJwPIhemHeo";
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // 5) Funzione di caricamento e rendering
+    // 4) Funzione per caricare i pull e renderizzare
     async function loadPulls() {
       try {
-        // Query: select * from pull_history where username=eq.username, order by card_value desc
+        // Query su "pull_history" => ordine decrescente di "card_value"
         let { data: pulls, error } = await supabase
           .from('pull_history')
           .select('*')
@@ -122,19 +120,16 @@
           return;
         }
 
-        // Calcola il totale
-        let totalVal = 0;
-        pulls.forEach(p => {
-          totalVal += (p.card_value || 0);
-        });
+        // Calcola la somma totale
+        let totalVal = pulls.reduce((acc, p) => acc + (p.card_value || 0), 0);
 
-        // Aggiorna il TOTALE PULL
+        // Aggiorna il testo del totale
         document.getElementById("totalPull").innerText =
           `TOTALE PULL: ${totalVal.toFixed(2)} €`;
 
         // Costruisci le card
         let albumGrid = document.getElementById("albumGrid");
-        albumGrid.innerHTML = ""; // svuota
+        albumGrid.innerHTML = ""; // pulizia iniziale
 
         pulls.forEach(p => {
           const card_link = p.card_link || "#";
@@ -142,8 +137,7 @@
           const card_val  = p.card_value || 0;
           const pulled_at = p.pulled_at || "---";
 
-          // Creiamo una colonna Materialize: col s12 m6
-          // => 1 colonna su schermi piccoli (s12), 2 colonne su media in su (m6).
+          // 2 colonne su schermi >=600px (m6), 1 colonna su smartphone (s12)
           let colDiv = document.createElement("div");
           colDiv.className = "col s12 m6";
 
@@ -164,7 +158,7 @@
           albumGrid.appendChild(colDiv);
         });
 
-        // Mostra la griglia e nascondi lo spinner
+        // Nascondi lo spinner, mostra la griglia
         document.getElementById("spinner").style.display = "none";
         albumGrid.style.display = "block";
 
@@ -176,7 +170,7 @@
       }
     }
 
-    // 6) Carica i dati
+    // 5) Avvio caricamento
     loadPulls();
   </script>
 
