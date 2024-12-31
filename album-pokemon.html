@@ -2,26 +2,43 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Album Pokemon</title>
+  <title>Album Pokemon - 2 colonne su mobile</title>
 
   <!-- Materialize CSS (CDN) -->
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
   />
-  <!-- Impostazione responsive per schermi mobili -->
+  <!-- Impostazione per dispositivi mobili -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <style>
-    /* Le immagini si adattano alla larghezza del contenitore,
-       mantenendo proporzioni corrette (height auto). */
-    .card-image img {
-      width: 100%;
-      height: auto;
-      /* Se vuoi limitare l’altezza massima, scommenta:
-      max-height: 300px;
-      object-fit: contain;
-      */
+    /* Forziamo 2 colonne su qualsiasi larghezza (anche mobile):
+       col s6 = 6 su 12 => 2 colonne. */
+    .col.s6 {
+      /* Importante per forzare 2 colonne anche sotto i 600px */
+      flex: 0 0 auto;
+      width: 50%; /* 6 su 12 => 50% */
+      max-width: 50%;
     }
+
+    /* Immagini più piccole: max-height + object-fit
+       Adattiamo la larghezza a "auto" così non si deforma. */
+    .card-image img {
+      display: block;
+      margin: 0 auto;           /* centrare l'immagine nella card */
+      max-height: 120px;        /* altezza massima */
+      width: auto;              /* mantieni proporzioni */
+      object-fit: contain;      /* non ritaglia, ridimensiona */
+    }
+
+    /* Niente a capo sui titoli e sul testo, con ellipsis se troppo lungo. */
+    .card-title,
+    .card-content p {
+      white-space: nowrap;       /* niente a capo */
+      overflow: hidden;          /* nasconde e aggiunge i puntini */
+      text-overflow: ellipsis;   /* puntini di sospensione se testo troppo lungo */
+    }
+
     .spinner {
       text-align: center;
       margin-top: 30px;
@@ -32,7 +49,7 @@
   </style>
 </head>
 <body>
-  <!-- Navbar in alto -->
+  <!-- Navbar -->
   <nav class="blue">
     <div class="nav-wrapper">
       <a href="#" class="brand-logo center" id="albumTitle">Album Pokemon</a>
@@ -41,13 +58,13 @@
 
   <!-- Contenitore principale -->
   <div class="container">
-    <!-- Div per eventuali messaggi/avvisi -->
+    <!-- Div dove mostriamo (eventualmente) messaggi di errore -->
     <div id="message" class="red-text center-align" style="margin-top:20px;"></div>
 
-    <!-- Titolo del totale -->
-    <h5 id="totalPull" class="center" style="margin-top: 20px;">
+    <!-- Titolo TOTALE -->
+    <h6 id="totalPull" class="center" style="margin-top: 15px;">
       TOTALE PULL: ...
-    </h5>
+    </h6>
 
     <!-- Spinner di caricamento -->
     <div id="spinner" class="spinner">
@@ -67,9 +84,9 @@
       <p>Caricamento in corso...</p>
     </div>
 
-    <!-- Grid responsive con Materialize -->
+    <!-- Griglia carte: 2 colonne anche su mobile -->
     <div id="albumGrid" class="row" style="display: none;">
-      <!-- Le card verranno create via JS -->
+      <!-- Le card vengono create qui da JavaScript -->
     </div>
   </div>
 
@@ -78,7 +95,7 @@
 
   <!-- Supabase JS v2 (ESM) -->
   <script type="module">
-    // 1) Leggi parametro "username" dall'URL
+    // 1) Leggi "username" dalla query string
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(param);
@@ -102,10 +119,10 @@
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4ZmRzaGZwaGx1aGJweWJvZ2F6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2MjE1MzYsImV4cCI6MjA1MDE5NzUzNn0.8CPX0AX2uAMMzriXqPgPkpJXdGINetoFHJwPIhemHeo";
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // 4) Funzione per caricare i pull e renderizzare
+    // 4) Carica i pull e costruisci la griglia
     async function loadPulls() {
       try {
-        // Query su "pull_history" => ordine decrescente di "card_value"
+        // Query su pull_history, ordine decrescente di card_value
         let { data: pulls, error } = await supabase
           .from('pull_history')
           .select('*')
@@ -115,21 +132,19 @@
         if (error) {
           console.error("Supabase Error:", error);
           document.getElementById("message").innerText =
-            "Errore nella lettura dei dati da Supabase!";
+            "Errore nella lettura dati da Supabase!";
           document.getElementById("spinner").style.display = "none";
           return;
         }
 
-        // Calcola la somma totale
+        // Calcola il totale
         let totalVal = pulls.reduce((acc, p) => acc + (p.card_value || 0), 0);
-
-        // Aggiorna il testo del totale
         document.getElementById("totalPull").innerText =
           `TOTALE PULL: ${totalVal.toFixed(2)} €`;
 
-        // Costruisci le card
-        let albumGrid = document.getElementById("albumGrid");
-        albumGrid.innerHTML = ""; // pulizia iniziale
+        // Genera le card
+        const albumGrid = document.getElementById("albumGrid");
+        albumGrid.innerHTML = "";
 
         pulls.forEach(p => {
           const card_link = p.card_link || "#";
@@ -137,9 +152,9 @@
           const card_val  = p.card_value || 0;
           const pulled_at = p.pulled_at || "---";
 
-          // 2 colonne su schermi >=600px (m6), 1 colonna su smartphone (s12)
-          let colDiv = document.createElement("div");
-          colDiv.className = "col s12 m6";
+          // 2 colonne anche su mobile => col s6
+          const colDiv = document.createElement("div");
+          colDiv.className = "col s6"; // Forza 2 colonne su qualsiasi larghezza
 
           colDiv.innerHTML = `
             <div class="card">
@@ -147,10 +162,9 @@
                 <img src="${card_link}" alt="${card_name}">
               </div>
               <div class="card-content">
-                <span class="card-title truncate">${card_name}</span>
+                <span class="card-title">${card_name}</span>
                 <p>
-                  Valore: ${card_val} €<br>
-                  Data pull: ${pulled_at}
+                  Valore: ${card_val} € - Data: ${pulled_at}
                 </p>
               </div>
             </div>
@@ -158,7 +172,7 @@
           albumGrid.appendChild(colDiv);
         });
 
-        // Nascondi lo spinner, mostra la griglia
+        // Mostra la griglia, nascondi spinner
         document.getElementById("spinner").style.display = "none";
         albumGrid.style.display = "block";
 
@@ -170,7 +184,7 @@
       }
     }
 
-    // 5) Avvio caricamento
+    // Avvio caricamento
     loadPulls();
   </script>
 
