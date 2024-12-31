@@ -26,40 +26,40 @@
       text-align: center;
     }
 
-    /* 2 colonne fisse su tutti i device => 50% */
+    /* 2 colonne fisse: 50% e 50% su tutti i device */
     .col.s6 {
       width: 50%;
       max-width: 50%;
       flex: 0 0 auto;
     }
 
-    /* Card di altezza fissa: 260px
+    /* Card di altezza fissa: 280px
        Usando flex, centriamo verticalmente la content sotto l'immagine. */
     .card {
-      height: 260px; 
+      height: 280px; 
       display: flex;
       flex-direction: column; 
       align-items: center; /* orizzontalmente al centro */
-      margin-bottom: 1rem;  /* un po' di spazio tra le righe */
+      margin-bottom: 1rem;  /* spazio tra le righe di carte */
     }
 
-    /* Sezione immagine: padding sopra e sotto
-       per evitare che l'immagine tocchi i bordi e le info */
+    /* Sezione immagine con un po' di padding
+       e un limite di 180px: immagine più grande */
     .card-image {
       flex: 0 0 auto;
       width: 100%;
-      text-align: center; 
+      text-align: center;
       padding-top: 8px;
       padding-bottom: 8px;
     }
-    /* Immagine ~15% più grande: max-height 138px */
     .card-image img {
-      max-height: 138px;
+      max-height: 180px;  /* immagine più grande */
       width: auto;
       object-fit: contain; 
     }
 
-    /* Testo (card-content) si espande, centrato verticalmente */
+    /* Parte testo (card-content) si espande
+       e centriamo verticalmente i paragrafi. */
     .card-content {
       flex: 1;
       display: flex; 
@@ -149,7 +149,7 @@
 
     async function loadPulls() {
       try {
-        // Query: pull_history => username => ordine desc su card_value
+        // Query: pull_history => username => ordine disc su card_value
         let { data: pulls, error } = await supabase
           .from('pull_history')
           .select('*')
@@ -183,7 +183,7 @@
           const colDiv = document.createElement("div");
           colDiv.className = "col s6";
 
-          // Nome carta in grassetto, stessi font-size del resto
+          // Nome carta in grassetto
           colDiv.innerHTML = `
             <div class="card">
               <div class="card-image">
