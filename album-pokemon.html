@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <title>Album di {{username}}</title>
+  <meta charset="UTF-8" />
+  <title>Album Pokemon</title>
+
+  <!-- Materialize CSS (CDN) -->
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
@@ -13,25 +15,161 @@
       height: 300px;
       object-fit: cover; 
     }
+    .spinner {
+      text-align: center;
+      margin-top: 30px;
+    }
+    #albumGrid {
+      margin-top: 30px;
+    }
   </style>
 </head>
 <body>
+  <!-- Navbar -->
   <nav class="blue">
     <div class="nav-wrapper">
-      <a href="#" class="brand-logo center">Album Pokemon di {{username}}</a>
+      <a href="#" class="brand-logo center" id="albumTitle">Album Pokemon</a>
     </div>
   </nav>
 
+  <!-- Container principale -->
   <div class="container">
-    <h5 class="center">TOTALE PULL: {{total_value}}</h5>
+    <!-- Div dove mostriamo (eventualmente) messaggi di errore o avvisi -->
+    <div id="message" class="red-text center-align" style="margin-top:20px;"></div>
 
-    <div class="row">
-      {{items_html}}
+    <!-- Sezione TOT Pull -->
+    <h5 id="totalPull" class="center" style="margin-top: 20px;">TOTALE PULL: ...</h5>
+
+    <!-- Spinner di caricamento -->
+    <div id="spinner" class="spinner">
+      <div class="preloader-wrapper active">
+        <div class="spinner-layer spinner-blue-only">
+          <div class="circle-clipper left">
+            <div class="circle"></div>
+          </div>
+          <div class="gap-patch">
+            <div class="circle"></div>
+          </div>
+          <div class="circle-clipper right">
+            <div class="circle"></div>
+          </div>
+        </div>
+      </div>
+      <p>Caricamento in corso...</p>
+    </div>
+
+    <!-- Griglia responsive -->
+    <div id="albumGrid" class="row" style="display: none;">
+      <!-- Qui inseriremo le card con JS -->
     </div>
   </div>
 
-  <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js">
+  <!-- Materialize JS (CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+  <!-- Supabase JS v2 (ESM su un CDN ESM, oppure su un bundler). Facciamo un trucco per import dinamico: -->
+  <script type="module">
+    // 1) Leggi parametri da query string
+    function getQueryParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
+
+    const username = getQueryParam('username');
+
+    // 2) Se non c'è username, mostriamo errore e stop
+    if (!username) {
+      document.getElementById("message").innerText =
+        "Nessun username fornito! Usa ?username=Qualcosa nell'URL.";
+      document.getElementById("spinner").style.display = "none";
+      throw new Error("No username param in URL");
+    }
+
+    // Cambiamo il titolo
+    document.getElementById("albumTitle").innerText = `Album di ${username}`;
+
+    // 3) Import supabase
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    // 4) Inizializza supabase client
+    const supabaseUrl = "https://xxfdshfphluhbpybogaz.supabase.co";     // <--- Sostituisci
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4ZmRzaGZwaGx1aGJweWJvZ2F6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2MjE1MzYsImV4cCI6MjA1MDE5NzUzNn0.8CPX0AX2uAMMzriXqPgPkpJXdGINetoFHJwPIhemHeo"; // <--- Sostituisci
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // 5) Funzione di caricamento e rendering
+    async function loadPulls() {
+      try {
+        // Query: select * from pull_history where username=eq.username, order by card_value desc
+        let { data: pulls, error } = await supabase
+          .from('pull_history')
+          .select('*')
+          .eq('username', username)
+          .order('card_value', { ascending: false });
+
+        if (error) {
+          console.error("Supabase Error:", error);
+          document.getElementById("message").innerText =
+            "Errore nella lettura dei dati da Supabase!";
+          return;
+        }
+
+        // Calcola il totale
+        let totalVal = 0;
+        pulls.forEach(p => {
+          totalVal += (p.card_value || 0);
+        });
+
+        // Aggiorna il TOTALE PULL
+        document.getElementById("totalPull").innerText =
+          `TOTALE PULL: ${totalVal.toFixed(2)} €`;
+
+        // Costruisci le card
+        let albumGrid = document.getElementById("albumGrid");
+        albumGrid.innerHTML = ""; // svuota
+
+        pulls.forEach(p => {
+          const card_link = p.card_link || "#";
+          const card_name = p.card_name || "???";
+          const card_val  = p.card_value || 0;
+          const pulled_at = p.pulled_at || "---";
+
+          // Crea un col con Materialize
+          let colDiv = document.createElement("div");
+          colDiv.className = "col s12 m6";
+
+          colDiv.innerHTML = `
+            <div class="card">
+              <div class="card-image">
+                <img src="${card_link}" alt="${card_name}">
+              </div>
+              <div class="card-content">
+                <span class="card-title truncate">${card_name}</span>
+                <p>
+                  Valore: ${card_val} €<br>
+                  Data pull: ${pulled_at}
+                </p>
+              </div>
+            </div>
+          `;
+          albumGrid.appendChild(colDiv);
+        });
+
+        // Mostra la griglia e nascondi lo spinner
+        document.getElementById("spinner").style.display = "none";
+        albumGrid.style.display = "block";
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById("message").innerText =
+          "Errore inaspettato: " + err.message;
+        document.getElementById("spinner").style.display = "none";
+      }
+    }
+
+    // 6) Chiama la funzione
+    loadPulls();
   </script>
+
 </body>
 </html>
+
