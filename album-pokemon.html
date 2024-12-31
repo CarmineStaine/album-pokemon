@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Album Pokemon - 2 colonne, dimensioni fisse</title>
+  <title>Album Pokemon - 2 colonne, card 250px</title>
 
   <!-- Materialize CSS (CDN) -->
   <link
@@ -13,38 +13,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
   <style>
-    /* Navbar: riduciamo il font per evitare sovrapposizioni su schermi piccoli */
+    /* Navbar: riduciamo il font per evitare sovrapposizioni su schermi molto piccoli */
     .nav-wrapper .brand-logo {
       font-size: 1rem !important; 
       white-space: nowrap;
     }
 
-    /* TOTALE PULL più piccolo */
+    /* TOTALE PULL più piccolo, centrato */
     #totalPull {
       font-size: 0.9rem; 
       margin-top: 10px;
       text-align: center;
     }
 
-    /* 2 colonne fisse: 50% e 50% su tutti i device */
+    /* 2 colonne fisse su tutti i device => 50% ciascuna */
     .col.s6 {
       width: 50%;
       max-width: 50%;
       flex: 0 0 auto;
     }
 
-    /* Card di altezza fissa: 280px
+    /* Card di altezza fissa: 250px 
        Usando flex, centriamo verticalmente la content sotto l'immagine. */
     .card {
-      height: 280px; 
+      height: 250px; 
       display: flex;
       flex-direction: column; 
       align-items: center; /* orizzontalmente al centro */
-      margin-bottom: 1rem;  /* spazio tra le righe di carte */
+      margin-bottom: 1rem; /* distanziazione fra righe */
     }
 
-    /* Sezione immagine con un po' di padding
-       e un limite di 180px: immagine più grande */
+    /* Sezione immagine con un po' di padding,
+       e max-height: 150px => immagine più grande ma dentro 250px totali */
     .card-image {
       flex: 0 0 auto;
       width: 100%;
@@ -53,13 +53,13 @@
       padding-bottom: 8px;
     }
     .card-image img {
-      max-height: 180px;  /* immagine più grande */
+      max-height: 150px; 
       width: auto;
       object-fit: contain; 
     }
 
-    /* Parte testo (card-content) si espande
-       e centriamo verticalmente i paragrafi. */
+    /* Parte testo (card-content) occupa lo spazio rimanente,
+       centrato verticalmente. */
     .card-content {
       flex: 1;
       display: flex; 
@@ -71,7 +71,7 @@
       padding: 0.5rem;
     }
 
-    /* Spinner e container */
+    /* Spinner e contenitore */
     .spinner {
       text-align: center;
       margin-top: 15px;
@@ -114,7 +114,7 @@
 
     <!-- Griglia: 2 colonne fisse -->
     <div id="albumGrid" class="row" style="display: none;">
-      <!-- Le card vengono generate dal JS -->
+      <!-- Le card verranno generate dal JS -->
     </div>
   </div>
 
@@ -123,7 +123,7 @@
 
   <!-- Supabase JS v2 (ESM) -->
   <script type="module">
-    // Leggi "username" dalla query string
+    // 1) Leggi "username" dalla query string
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(param);
@@ -136,20 +136,20 @@
       throw new Error("No username param in URL");
     }
 
-    // Imposta titolo
+    // 2) Imposta il titolo
     document.getElementById("albumTitle").innerText = `Album di ${username}`;
 
-    // Import supabase
+    // 3) Import supabase
     import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-    // Inizializza supabase
+    // 4) Inizializza supabase
     const supabaseUrl = "https://xxfdshfphluhbpybogaz.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4ZmRzaGZwaGx1aGJweWJvZ2F6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2MjE1MzYsImV4cCI6MjA1MDE5NzUzNn0.8CPX0AX2uAMMzriXqPgPkpJXdGINetoFHJwPIhemHeo";
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // 5) Carica i pull e mostra le carte
     async function loadPulls() {
       try {
-        // Query: pull_history => username => ordine disc su card_value
         let { data: pulls, error } = await supabase
           .from('pull_history')
           .select('*')
@@ -183,7 +183,7 @@
           const colDiv = document.createElement("div");
           colDiv.className = "col s6";
 
-          // Nome carta in grassetto
+          // Nome carta in grassetto, stessa dimensione font del resto
           colDiv.innerHTML = `
             <div class="card">
               <div class="card-image">
@@ -201,7 +201,7 @@
           albumGrid.appendChild(colDiv);
         });
 
-        // Mostra la griglia, nascondi spinner
+        // Nascondiamo lo spinner e mostriamo la griglia
         document.getElementById("spinner").style.display = "none";
         albumGrid.style.display = "block";
 
@@ -213,7 +213,7 @@
       }
     }
 
-    // Avvio
+    // 6) Avvio caricamento
     loadPulls();
   </script>
 </body>
